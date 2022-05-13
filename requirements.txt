@@ -1,0 +1,4 @@
+feedparser
+sentence-transformers
+pandas
+nltk

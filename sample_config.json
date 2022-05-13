@@ -1,0 +1,8 @@
+{
+    "input_directory": "nasa",
+    "output_directory": "nasa_output",
+    "pretrained_model": "all-mpnet-base-v2",
+    "clust_dist_threshold": 4,
+    "tsne_iter": 8000,
+    "text_max_length": 2048
+}

@@ -1,0 +1,123 @@
+<head>
+    <!-- Load plotly.js into the DOM -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src='https://cdn.plot.ly/plotly-2.11.1.min.js'></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="jumbotron">
+            <p class="lead" style="padding-top:20px">
+                Add information about the visualization here !
+            </p>
+        </div>
+        <div id="clusters"> </div>
+        <div id='myDiv' style="width:90%;height:800px"> </div>
+    </div>
+    <script>
+
+        //let color = d3.scaleOrdinal(d3.schemeCategory10);
+        let color = d3.scaleSequential(d3.interpolateRainbow);
+        let cluster_count = 1
+        let csv_data = null;
+
+        let trace1 = {
+            x: [],
+            y: [],
+            marker: {
+                size: [],
+                color: []
+            },
+            text: [],
+            mode: 'markers',
+            name: 'Markers and Text',
+            textposition: 'top',
+            type: 'scatter',
+
+        };
+        let data = [trace1]
+        let layout = {
+            showlegend: false,
+            xaxis: {
+                showgrid: false,
+                zeroline: false
+            },
+            yaxis: {
+                showgrid: false,
+                showline: false,
+                zeroline: false
+            }
+        }
+
+        function makeplot() {
+            d3.csv("data.csv" + '?' + Math.floor(Math.random() * 1000)).then((d) => {
+                csv_data = d
+                let clusterNumbers = d.map(a => parseInt(a.cluster))
+                cluster_count = Math.max(...clusterNumbers)
+                d3.select('#clusters')
+                    .selectAll('span')
+                    .data(d3.range(0, cluster_count))
+                    .enter()
+                    .append('span')
+                    .style("background-color", function (d) { return color(d / cluster_count) })
+                    .style("padding", "2px")
+                    .style("border", "1px solid grey")
+                    .style("min-width", "25px")
+                    .style("display", "inline-block")
+                    .style("color", "white")
+                    .style("text-shadow", "1px 1px grey")
+                    .style("margin", "1px")
+                    .style("border-radius", "2px")
+                    .attr("data-clusterId", function (d) { return d })
+                    .on("mouseover", function (e, d) {
+                        //console.log(this.data.cluserId)
+                        //let currentClusterId = this.getAttribute("data-clusterId")
+                        let newTrace = JSON.parse(JSON.stringify(trace1));
+                        let new_colors = newTrace.marker.color.map(function (c,idx) {                          
+                            return csv_data[idx].cluster == d ? color(d / cluster_count)  : "#e0eeeeee"
+                        })
+                        newTrace.marker.color = new_colors
+                        drawPlot('myDiv', [newTrace], layout)
+
+                    })
+                    .on("mouseout", function () {
+                        drawPlot('myDiv', [trace1], layout)
+                    })
+                    .text(function (d) {
+                        return d;
+                    });
+
+                d.forEach(element => {
+                    processData(element)
+                });
+                drawPlot('myDiv', data, layout)
+
+
+            })
+
+        };
+        function drawPlot(placeholder, data, layout) {
+            Plotly.newPlot(placeholder, data, layout).then(function () {
+                document.getElementById(placeholder).on('plotly_click', function (data) {
+                    window.open(csv_data[data.points[0].pointIndex].url, "__blank")
+                });
+            })
+
+        }
+
+        function processData(row) {
+            trace1.x.push(row.x)
+            trace1.y.push(row.y)
+            trace1.text.push(row.label.replace("Bliki:", ""))
+            trace1.marker.size.push((parseInt(row.count) + 8) * 1.2)
+            trace1.marker.color.push(color(parseInt(row.cluster) / cluster_count))
+            console.log(row.cluster)
+        }
+        makeplot()
+    </script>
+</body>
