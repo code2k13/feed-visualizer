@@ -58,7 +58,7 @@
             d3.csv("data.csv" + '?' + Math.floor(Math.random() * 1000)).then((d) => {
                 csv_data = d
                 let clusterNumbers = d.map(a => parseInt(a.cluster))
-                cluster_count = Math.max(...clusterNumbers)
+                cluster_count = Math.max(...clusterNumbers) + 1
                 d3.select('#clusters')
                     .selectAll('span')
                     .data(d3.range(0, cluster_count))

@@ -1,0 +1,9 @@
+{
+    "input_directory": "feeds",
+    "output_directory": "feeds_output",
+    "pretrained_model": "all-mpnet-base-v2",
+    "clust_dist_threshold":1,
+    "tsne_iter": 8000,
+    "text_max_length": 8048,
+    "random_state": 45
+}

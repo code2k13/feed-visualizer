@@ -74,9 +74,12 @@ def generate_embeddings(entries,entry_counts):
 def get_coordinates(entries):
     X = [entries[e][-1] for e in entries]
     X = np.array(X)
-    tsne = TSNE(n_iter=config["tsne_iter"],init='pca',learning_rate='auto')
+    tsne = TSNE(n_iter=config["tsne_iter"],init='pca',learning_rate='auto',random_state=config["random_state"])
     clustering_model = AgglomerativeClustering(distance_threshold=config["clust_dist_threshold"], n_clusters=None)
-    clusters = clustering_model.fit_predict(tsne.fit_transform(X))
+    tsne_output = tsne.fit_transform(X)
+    tsne_output = (tsne_output-tsne_output.min())/(tsne_output.max()-tsne_output.min())
+    #tsne_output = (tsne_output-tsne_output.mean())/tsne_output.std()
+    clusters = clustering_model.fit_predict(tsne_output)
     return [x[0] for x in tsne.fit_transform(X)], [x[1] for x in tsne.fit_transform(X)], clusters
 
 
