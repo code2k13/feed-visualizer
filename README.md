@@ -51,7 +51,8 @@ Now, we need to create a config file for Feed Visualizer. The config file contai
     "pretrained_model": "all-mpnet-base-v2",
     "clust_dist_threshold": 4,
     "tsne_iter": 8000,
-    "text_max_length": 2048
+    "text_max_length": 2048,
+    "topic_str_min_df": 0.25
 }
 ```
 
@@ -77,7 +78,8 @@ Here is some information on what each config setting does:
     "pretrained_model": "name of pretrained model. Here is list of all valid model names https://www.sbert.net/docs/pretrained_models.html#model-overview",
     "clust_dist_threshold": "Integer representing maximum radius of cluster. There is no correct value here. Experiment !",
     "tsne_iter": "Integer representing number of iterations for TSNE (higher is better)",
-    "text_max_length": "Integer representing number of characters to read from content/description for semantic encoding."
+    "text_max_length": "Integer representing number of characters to read from content/description for semantic encoding.",
+    "topic_str_min_df": "A float. For example value of 0.25 means that only phrases which are present in 25% or more items in a cluster will be considered for being used as name of the cluster."  
 }
 ```
 

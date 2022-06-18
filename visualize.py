@@ -13,6 +13,7 @@ import pandas as pd
 from bs4 import BeautifulSoup, SoupStrainer
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.manifold import TSNE
 from tqdm import tqdm
 
@@ -82,6 +83,22 @@ def get_coordinates(entries):
     clusters = clustering_model.fit_predict(tsne_output)
     return [x[0] for x in tsne.fit_transform(X)], [x[1] for x in tsne.fit_transform(X)], clusters
 
+def find_topics(df):
+    topics = []
+    for i in range(0,df["cluster"].max()+1):
+        try:        
+            df_text = df[df['cluster']==i]["label"]
+            vectorizer = CountVectorizer(ngram_range=(1,2),min_df=config["topic_str_min_df"],stop_words='english')
+            X = vectorizer.fit_transform(df_text)
+            possible_topics = vectorizer.get_feature_names_out()
+            idx_topic  = np.argmax([len(a) for a in possible_topics])
+            topics.append(possible_topics[idx_topic])
+            #x,y = np.argmax(np.max(X, axis=1)),np.argmax(np.max(X, axis=0))
+            #topics.append(vectorizer.get_feature_names_out()[y])
+        except:
+            topics.append("NA")
+            pass
+    return topics
 
 def main():
     all_entries = get_all_entries(config["input_directory"])
@@ -106,7 +123,9 @@ def main():
     df = pd.DataFrame({'x': x, 'y': y, 'label': labels,
                     'count': counts, 'url': entries.keys(), 'cluster': cluster_info})
 
-
+    topics = find_topics(df)
+    df["topic"] = df["cluster"].apply(lambda x : topics[x])
+    print('Assigning cluster names !')
     if not os.path.exists(config["output_directory"]):
         os.makedirs(config["output_directory"])
     df.to_csv(config["output_directory"]+"/data.csv")

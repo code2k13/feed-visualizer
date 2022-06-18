@@ -57,7 +57,9 @@
         function makeplot() {
             d3.csv("data.csv" + '?' + Math.floor(Math.random() * 1000)).then((d) => {
                 csv_data = d
-                let clusterNumbers = d.map(a => parseInt(a.cluster))
+                let clusterNumbers = []
+                let topics = {}
+                d.forEach(a => {topics[a.cluster] = a.topic;clusterNumbers.push(parseInt(a.cluster))})
                 cluster_count = Math.max(...clusterNumbers) + 1
                 d3.select('#clusters')
                     .selectAll('span')
@@ -69,8 +71,8 @@
                     .style("border", "1px solid grey")
                     .style("min-width", "25px")
                     .style("display", "inline-block")
-                    .style("color", "white")
-                    .style("text-shadow", "1px 1px grey")
+                    .style("color", function (d) {    return (d < (cluster_count*.3) || d > (cluster_count*.7))? 'white':'black'})
+                    //.style("text-shadow", "1px 1px grey")
                     .style("margin", "1px")
                     .style("border-radius", "2px")
                     .attr("data-clusterId", function (d) { return d })
@@ -78,8 +80,8 @@
                         //console.log(this.data.cluserId)
                         //let currentClusterId = this.getAttribute("data-clusterId")
                         let newTrace = JSON.parse(JSON.stringify(trace1));
-                        let new_colors = newTrace.marker.color.map(function (c,idx) {                          
-                            return csv_data[idx].cluster == d ? color(d / cluster_count)  : "#e0eeeeee"
+                        let new_colors = newTrace.marker.color.map(function (c, idx) {
+                            return csv_data[idx].cluster == d ? color(d / cluster_count) : "#e0eeeeee"
                         })
                         newTrace.marker.color = new_colors
                         drawPlot('myDiv', [newTrace], layout)
@@ -89,7 +91,7 @@
                         drawPlot('myDiv', [trace1], layout)
                     })
                     .text(function (d) {
-                        return d;
+                        return d + " - " + topics[d];
                     });
 
                 d.forEach(element => {
