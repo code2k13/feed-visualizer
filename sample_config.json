@@ -2,7 +2,9 @@
     "input_directory": "nasa",
     "output_directory": "nasa_output",
     "pretrained_model": "all-mpnet-base-v2",
-    "clust_dist_threshold": 4,
+    "clust_dist_threshold":1,
     "tsne_iter": 8000,
-    "text_max_length": 2048
+    "text_max_length": 2048,
+    "random_state": 45,
+    "topic_str_min_df": 0.20
 }
