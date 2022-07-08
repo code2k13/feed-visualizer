@@ -8,14 +8,17 @@ This tool can be used to generate 'semantic summary' of any website by reading i
 
 Interactive Demos:
 
+* Visualization created from around 950 items from [Slashdot’s RSS Feed](http://rss.slashdot.org/Slashdot/slashdotMain) :
+🔗https://ashishware.com/static/slashdot_viz.html
+
 * Visualization created from [NASA’s RSS Feed](https://www.nasa.gov/rss/dyn/breaking_news.rss) :
-https://ashishware.com/static/nasa_viz.html
+🔗https://ashishware.com/static/nasa_viz.html
 
 * Visualization created from [Martin Fowler's Atom Feed](https://martinfowler.com/feed.atom) :
-[https://ashishware.com/static/martin_fowler_viz.html](https://ashishware.com/static/martin_fowler_viz.html)
+[🔗https://ashishware.com/static/martin_fowler_viz.html](https://ashishware.com/static/martin_fowler_viz.html)
 
 * Visualization created from [BCC's RSS Feed](http://feeds.bbci.co.uk/news/rss.xml) :
-[https://ashishware.com/static/bbc_viz.html](https://ashishware.com/static/bbc_viz.html)
+[🔗https://ashishware.com/static/bbc_viz.html](https://ashishware.com/static/bbc_viz.html)
 
 ## Quick Start
 
