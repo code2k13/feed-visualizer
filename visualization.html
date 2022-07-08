@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Feed Visualizer</title>
     <!-- Load plotly.js into the DOM -->
@@ -8,9 +9,29 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
-        #clusters span {
-            cursor: pointer;
+        .clustnumspan {
+            padding-right: 2px;
+            padding-left: 2px;
+            border-right: 1px solid #fdfdfd57;
+            display: inline-block;
+            border-radius: 30px;
+            background-color: white;
+            color: #212529;
+            font-size: x-small;
+            text-align: center;
+            margin: 4px;
+            min-width: 18px;
+
+        }
+
+        #clusters {
+            cursor: pointer
+        }
+
+        body {
+            background-color: #dee2e6;
         }
     </style>
 
@@ -25,12 +46,13 @@
             </p>
         </div>
         <div id="clusters"> </div>
-        <div id='myDiv' style="width:90%;height:800px"> </div>
+        <div id='myDiv' style="width:100%;height:700px"> </div>
     </div>
     <script>
 
-        //let color = d3.scaleOrdinal(d3.schemeCategory10);
-        let color = d3.scaleSequential(d3.interpolateRainbow);
+        let color = d3.scaleOrdinal(d3.schemeSet2);
+        //let color = d3.scaleSequential(d3.interpolateRainbow);
+        //let color = d3.schemePastel1;
         let cluster_count = 1
         let csv_data = null;
 
@@ -39,7 +61,11 @@
             y: [],
             marker: {
                 size: [],
-                color: []
+                color: [],
+                line: {
+                    color: '#eee2e6',
+                    width: 0.5
+                }
             },
             text: [],
             mode: 'markers',
@@ -53,13 +79,22 @@
             showlegend: false,
             xaxis: {
                 showgrid: false,
-                zeroline: false
+                zeroline: false,
+                 
+
             },
             yaxis: {
                 showgrid: false,
-                showline: false,
+
                 zeroline: false
-            }
+            },
+            font: {
+                family: 'Courier New, monospace',
+                size: 9,
+                color: '#7f7f7f'
+            },
+            paper_bgcolor:'rgba(0,0,0,0)',
+            plot_bgcolor:'rgba(0,0,0,0)'
         }
 
         function makeplot() {
@@ -75,21 +110,24 @@
                     .enter()
                     .append('span')
                     .style("background-color", function (d) { return color(d / cluster_count) })
-                    .style("padding", "2px")
-                    .style("border", "1px solid grey")
+                    .style("padding-left", "4px")
+                    .style("padding-right", "4px")
+                    .style("font-size", "small")
+                    //.style("border", "1px solid grey")
                     .style("min-width", "25px")
                     .style("display", "inline-block")
-                    .style("color", function (d) { return (d < (cluster_count * .3) || d > (cluster_count * .7)) ? 'white' : 'black' })
+                    //.style("color", function (d) {    return (d < (cluster_count*.3) || d > (cluster_count*.7))? 'white':'black'})
+                    .style("color", "white")
                     //.style("text-shadow", "1px 1px grey")
                     .style("margin", "1px")
-                    .style("border-radius", "2px")
+                    .style("border-radius", "4px")
                     .attr("data-clusterId", function (d) { return d })
                     .on("mouseover", function (e, d) {
                         //console.log(this.data.cluserId)
                         //let currentClusterId = this.getAttribute("data-clusterId")
                         let newTrace = JSON.parse(JSON.stringify(trace1));
                         let new_colors = newTrace.marker.color.map(function (c, idx) {
-                            return csv_data[idx].cluster == d ? color(d / cluster_count) : "#e0eeeeee"
+                            return csv_data[idx].cluster == d ? color(d / cluster_count) : "#dee2e6"
                         })
                         newTrace.marker.color = new_colors
                         drawPlot('myDiv', [newTrace], layout)
@@ -98,8 +136,8 @@
                     .on("mouseout", function () {
                         drawPlot('myDiv', [trace1], layout)
                     })
-                    .text(function (d) {
-                        return d + " - " + topics[d];
+                    .html(function (d) {
+                        return "<span class='clustnumspan'>" + d.toString() + " </span> " + topics[d];
                     });
 
                 d.forEach(element => {
