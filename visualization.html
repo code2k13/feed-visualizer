@@ -51,6 +51,7 @@
     <script>
 
         let color = d3.scaleOrdinal(d3.schemeSet2);
+        let clusters = {}
         //let color = d3.scaleSequential(d3.interpolateRainbow);
         //let color = d3.schemePastel1;
         let cluster_count = 1
@@ -69,9 +70,9 @@
             },
             text: [],
             mode: 'markers',
-            name: 'Markers and Text',
             textposition: 'top',
             type: 'scatter',
+            name: "\nURL"
 
         };
         let data = [trace1]
@@ -80,7 +81,7 @@
             xaxis: {
                 showgrid: false,
                 zeroline: false,
-                 
+
 
             },
             yaxis: {
@@ -93,8 +94,46 @@
                 size: 9,
                 color: '#7f7f7f'
             },
-            paper_bgcolor:'rgba(0,0,0,0)',
-            plot_bgcolor:'rgba(0,0,0,0)'
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)'
+        }
+
+        function draw_convex_hull(clusters) {
+            for (let k in clusters) {
+                let color_line = color(parseInt(k) / cluster_count)
+                let color_hull = d3.color(color_line)
+                color_hull.opacity = 0.2
+                color_hull = d3.color(color_hull)
+                var convexHull = d3.polygonHull(clusters[k]);
+                var convexHullTrace = {
+                    type: 'polygon',
+                    x: convexHull.map(function (d) { return d[0]; }),
+                    y: convexHull.map(function (d) { return d[1]; }),
+                    mode: 'lines',
+                    line: {
+                        color: color_line,
+                        width: 1,
+                        shape: 'spline'
+
+                    },
+                    fill: 'tozeroy',
+                    fillcolor: color_hull.toString(),
+                    showlegend: false,
+                    hoverinfo: 'skip'
+                };
+                convexHullTrace.x.push(convexHullTrace.x[0])
+                convexHullTrace.y.push(convexHullTrace.y[0])
+                Plotly.addTraces('myDiv', convexHullTrace);
+            }
+        }
+
+        function drawPlot(placeholder, data, layout) {
+            Plotly.newPlot(placeholder, data, layout).then(function () {
+                document.getElementById(placeholder).on('plotly_click', function (data) {
+                    window.open(csv_data[data.points[0].pointIndex].url, "__blank")
+                });
+            })
+
         }
 
         function makeplot() {
@@ -135,6 +174,7 @@
                     })
                     .on("mouseout", function () {
                         drawPlot('myDiv', [trace1], layout)
+                        draw_convex_hull(clusters)
                     })
                     .html(function (d) {
                         return "<span class='clustnumspan'>" + d.toString() + " </span> " + topics[d];
@@ -146,17 +186,15 @@
                 drawPlot('myDiv', data, layout)
 
 
+            }).then(a => {
+                draw_convex_hull(clusters)
+
             })
 
         };
-        function drawPlot(placeholder, data, layout) {
-            Plotly.newPlot(placeholder, data, layout).then(function () {
-                document.getElementById(placeholder).on('plotly_click', function (data) {
-                    window.open(csv_data[data.points[0].pointIndex].url, "__blank")
-                });
-            })
 
-        }
+
+
 
         function processData(row) {
             trace1.x.push(row.x)
@@ -164,9 +202,17 @@
             trace1.text.push(row.label.replace("Bliki:", ""))
             trace1.marker.size.push((parseInt(row.count) + 8) * 1.2)
             trace1.marker.color.push(color(parseInt(row.cluster) / cluster_count))
-            console.log(row.cluster)
+            let cluster_key = row.cluster.toString()
+            if (!clusters[cluster_key]) {
+                clusters[cluster_key] = []
+            }
+            clusters[cluster_key].push([row.x, row.y])
+            console.log(cluster_key)
         }
+
+
         makeplot()
+
     </script>
 </body>
 
