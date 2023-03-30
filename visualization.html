@@ -3,7 +3,6 @@
 
 <head>
     <title>Feed Visualizer</title>
-    <!-- Load plotly.js into the DOM -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src='https://cdn.plot.ly/plotly-2.11.1.min.js'></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -45,17 +44,18 @@
                 Add information about the visualization here !
             </p>
         </div>
+        <div id="chk" class="lead">Enable Hulls: <input type="checkbox" onchange="update_hulls(this.checked)"
+                value='true' /></div>
         <div id="clusters"> </div>
         <div id='myDiv' style="width:100%;height:700px"> </div>
     </div>
     <script>
-
+        let hulls_enabled = false;
         let color = d3.scaleOrdinal(d3.schemeSet2);
         let clusters = {}
-        //let color = d3.scaleSequential(d3.interpolateRainbow);
-        //let color = d3.schemePastel1;
         let cluster_count = 1
         let csv_data = null;
+        let selected_cluster = -1;
 
         let trace1 = {
             x: [],
@@ -81,12 +81,9 @@
             xaxis: {
                 showgrid: false,
                 zeroline: false,
-
-
             },
             yaxis: {
                 showgrid: false,
-
                 zeroline: false
             },
             font: {
@@ -99,32 +96,43 @@
         }
 
         function draw_convex_hull(clusters) {
-            for (let k in clusters) {
-                let color_line = color(parseInt(k) / cluster_count)
-                let color_hull = d3.color(color_line)
-                color_hull.opacity = 0.2
-                color_hull = d3.color(color_hull)
-                var convexHull = d3.polygonHull(clusters[k]);
-                var convexHullTrace = {
-                    type: 'polygon',
-                    x: convexHull.map(function (d) { return d[0]; }),
-                    y: convexHull.map(function (d) { return d[1]; }),
-                    mode: 'lines',
-                    line: {
-                        color: color_line,
-                        width: 1,
-                        shape: 'spline'
+            if (hulls_enabled == false) { 
+                let tracesCount = document.getElementById('myDiv').data.length
+                for (let q = 1; q < tracesCount; q++) {
+                    Plotly.deleteTraces('myDiv', 1);
+                }
+                return;
+            };
+            d3.json("convex_hulls.json" + '?' + Math.floor(Math.random() * 1000)).then((d) => {
+                d.forEach((b, idx) => {
 
-                    },
-                    fill: 'tozeroy',
-                    fillcolor: color_hull.toString(),
-                    showlegend: false,
-                    hoverinfo: 'skip'
-                };
-                convexHullTrace.x.push(convexHullTrace.x[0])
-                convexHullTrace.y.push(convexHullTrace.y[0])
-                Plotly.addTraces('myDiv', convexHullTrace);
-            }
+                    if (selected_cluster > -1 && idx != selected_cluster) {
+                        return;
+                    }
+
+                    let color_line = color(idx / cluster_count)
+                    let color_hull = d3.color(color_line)
+                    color_hull.opacity = 0.2
+                    color_hull = d3.color(color_hull)
+                    var convexHullTrace = {
+                        type: 'polygon',
+                        x: b.x,
+                        y: b.y,
+                        mode: 'lines',
+                        line: {
+                            color: "#999",
+                            width: 1,
+                            shape: 'spline',
+                            dash: 'dot'
+
+                        },
+                        fillcolor: color_hull.toString(),
+                        showlegend: false,
+                        hoverinfo: 'skip'
+                    };
+                    Plotly.addTraces('myDiv', convexHullTrace);
+                })
+            })
         }
 
         function drawPlot(placeholder, data, layout) {
@@ -137,6 +145,10 @@
         }
 
         function makeplot() {
+            trace1.x = [];
+            trace1.y = []
+            document.getElementById("clusters").innerHTML = ""
+            document.getElementById("myDiv").innerHTML = ""
             d3.csv("data.csv" + '?' + Math.floor(Math.random() * 1000)).then((d) => {
                 csv_data = d
                 let clusterNumbers = []
@@ -152,21 +164,16 @@
                     .style("padding-left", "4px")
                     .style("padding-right", "4px")
                     .style("font-size", "small")
-                    //.style("border", "1px solid grey")
                     .style("min-width", "25px")
                     .style("display", "inline-block")
-                    //.style("color", function (d) {    return (d < (cluster_count*.3) || d > (cluster_count*.7))? 'white':'black'})
                     .style("color", "white")
-                    //.style("text-shadow", "1px 1px grey")
                     .style("margin", "1px")
                     .style("border-radius", "4px")
                     .attr("data-clusterId", function (d) { return d })
                     .on("mouseover", function (e, d) {
-                        //console.log(this.data.cluserId)
-                        //let currentClusterId = this.getAttribute("data-clusterId")
                         let newTrace = JSON.parse(JSON.stringify(trace1));
                         let new_colors = newTrace.marker.color.map(function (c, idx) {
-                            return csv_data[idx].cluster == d ? color(d / cluster_count) : "#dee2e6"
+                            return (csv_data[idx] && csv_data[idx].cluster == d) ? color(d / cluster_count) : "#dee2e6"
                         })
                         newTrace.marker.color = new_colors
                         drawPlot('myDiv', [newTrace], layout)
@@ -185,16 +192,12 @@
                 });
                 drawPlot('myDiv', data, layout)
 
-
             }).then(a => {
                 draw_convex_hull(clusters)
 
             })
 
         };
-
-
-
 
         function processData(row) {
             trace1.x.push(row.x)
@@ -207,12 +210,15 @@
                 clusters[cluster_key] = []
             }
             clusters[cluster_key].push([row.x, row.y])
-            console.log(cluster_key)
         }
 
+        function update_hulls(b) {
+            hulls_enabled = b;
+            draw_convex_hull();
+           //makeplot();
+        }
 
         makeplot()
-
     </script>
 </body>
 
